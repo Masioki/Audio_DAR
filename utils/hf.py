@@ -12,13 +12,12 @@ def login_to_hf():
         log.exception(f"Failed to login to HF")
 
 
-def upload(ds: Dataset | DatasetDict, path: str, name: str = "default", split: str = None):
+def upload(ds: Dataset | DatasetDict, path: str, name: str = "default"):
     login_to_hf()
-    log.info(f"Uploading dataset: {path}/{name} split: {split} to HF")
-    ds.push_to_hub(path, name, split=split)
+    log.info(f"Uploading dataset {path}/{name} to HF")
+    ds.push_to_hub(path, name)
 
 
 def load(path: str, name: str = None, split: str = None) -> IterableDataset | IterableDatasetDict:
-    login_to_hf()
-    log.debug(f"Loading dataset {path}/{name} from HF")
+    log.debug(f"Loading dataset {path}/{name}/{split} from HF")
     return load_dataset(path, name=name, split=split, streaming=True)

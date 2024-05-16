@@ -9,12 +9,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SAMPLE_RATE = int(os.environ.get("SAMPLE_RATE", 512))
-
 HF_CONFIG = {
     "token": os.environ.get("HF_TOKEN"),
     "write_permission": bool(os.environ.get("HF_WRITE_PERMISSION", False))
 }
+SPEAKER_COLUMN_NAME = "speaker"
+TEXT_COLUMN_NAME = "text"
+AUDIO_COLUMN_NAME = "audio"
+CONVERSATION_COLUMN_NAME = "conversation"
 
+# logging
 LOG_DIR = Path(os.environ.get("LOG_DIR", "./logs"))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
