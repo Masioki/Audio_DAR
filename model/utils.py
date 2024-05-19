@@ -33,7 +33,7 @@ def single_label_compute_metrics(p):
 
 
 def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 2, weight_decay: float = 0.01,
-          tag: str = "default", patience: int = 10):
+          lr: float = 2e-5, tag: str = "default", patience: int = 10):
     model_output_dir = str(os.path.join(root_path, name, tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
@@ -42,7 +42,7 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         eval_steps=500,
         logging_strategy="steps",
         logging_steps=500,
-        learning_rate=2e-5,
+        learning_rate=lr,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
         num_train_epochs=epochs,
@@ -62,7 +62,9 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
     trainer.train()
+    eval_res = trainer.evaluate(ds["test"])
     trainer.push_to_hub(tags=[tag])
+    return eval_res, model_output_dir
 
 
 def _load_model(name: str, **kwargs) -> Any:
