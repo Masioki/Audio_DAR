@@ -9,4 +9,5 @@ soundfile
 huggingface-hub~=0.23.0
 librosa
 datasets[audio]
-transformers
+transformers~=4.41.0
+scikit-learn~=1.4.2
