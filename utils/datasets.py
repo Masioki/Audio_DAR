@@ -45,5 +45,5 @@ def process(ds, converters: Dict[str, Callable], columns_to_remove: set = {}):
         return batch
 
     ds = ds.map(mapper, batched=True)
-    ds.remove_columns_(columns_to_remove)
+    ds.remove_columns(columns_to_remove)
     return ds
