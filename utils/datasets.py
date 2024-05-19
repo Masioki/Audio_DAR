@@ -37,7 +37,7 @@ def generate(config: DatasetConfig) -> DatasetDict:
     return ds
 
 
-def process(ds, converters: Dict[str, Callable], columns_to_retain: set):
+def process(ds, converters: Dict[str, Callable], columns_to_remove: set = {}):
     def mapper(batch):
         for column, converter in converters.items():
             batch[column] = converter(batch[column])
@@ -45,5 +45,5 @@ def process(ds, converters: Dict[str, Callable], columns_to_retain: set):
         return batch
 
     ds = ds.map(mapper, batched=True)
-    ds.remove_columns_(set(ds.column_names) - columns_to_retain)
+    ds.remove_columns_(columns_to_remove)
     return ds
