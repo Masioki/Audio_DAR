@@ -17,6 +17,7 @@ SPEAKER_COLUMN_NAME = "speaker"
 TEXT_COLUMN_NAME = "text"
 AUDIO_COLUMN_NAME = "audio"
 CONVERSATION_COLUMN_NAME = "conversation"
+LABEL_COLUMN_NAME = "label"
 
 # logging
 LOG_DIR = Path(os.environ.get("LOG_DIR", "./logs"))

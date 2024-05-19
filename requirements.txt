@@ -8,3 +8,5 @@ colorlog~=6.8.2
 soundfile
 huggingface-hub~=0.23.0
 librosa
+datasets[audio]
+transformers

@@ -7,7 +7,7 @@ from utils.conversation import Conversation
 
 class DatasetConfig:
     def __init__(self, repo_path: str, generator: Type[AbstractDatasetGenerator],
-                 audio_features: List[Callable[[Conversation, int], AudioFeature]], repo_name: str = None,
+                 audio_features: List[Callable[[Conversation, int, int], AudioFeature]], repo_name: str = None,
                  generator_kwargs=None):
         if generator_kwargs is None:
             generator_kwargs = {}

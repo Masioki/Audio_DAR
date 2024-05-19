@@ -9,7 +9,7 @@ from config.global_config import AUDIO_COLUMN_NAME, TEXT_COLUMN_NAME, SPEAKER_CO
 from config.global_config import SAMPLE_RATE
 from config.global_config import log
 from utils.conversation import Conversation
-from utils.hf import load
+from utils.hf import load_ds
 
 
 class _DatasetGeneratorPickleHack:
@@ -136,7 +136,7 @@ class HfAbstractDatasetGenerator(AbstractDatasetGenerator):
         return self.ds.features[self.audio_id].sampling_rate
 
     def _prepare(self, split: str) -> None:
-        self.ds = load(self.hf_path, self.hf_name, split)
+        self.ds = load_ds(self.hf_path, self.hf_name, split)
         self.ds_iterator = self.ds.iter(batch_size=1)
 
     def _conversation_keys(self, split: str) -> Generator[str, None, None]:

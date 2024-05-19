@@ -1,9 +1,11 @@
+from typing import Dict, Callable
+
 from datasets import DatasetDict
 from datasets.data_files import EmptyDatasetError
 
 from config.global_config import SAMPLE_RATE, log
 from utils.config import DatasetConfig
-from utils.hf import upload, load
+from utils.hf import upload, load_ds
 
 
 def get(config: DatasetConfig, split: str = None, allow_generation: bool = False, force_regenerate: bool = False):
@@ -13,7 +15,7 @@ def get(config: DatasetConfig, split: str = None, allow_generation: bool = False
             log.info(f"Force regenerating")
             return generate(config)
         try:
-            return load(config.repo_path, config.repo_name, split)
+            return load_ds(config.repo_path, config.repo_name, split)
         except EmptyDatasetError as e:
             log.info(f"Dataset empty, regenerating")
             if allow_generation:
@@ -32,4 +34,16 @@ def generate(config: DatasetConfig) -> DatasetDict:
         upload(ds, config.repo_path, config.repo_name)
     except Exception:
         log.exception(f"Failed to upload dataset {config.repo_path}/{config.repo_name}")
+    return ds
+
+
+def process(ds, converters: Dict[str, Callable], columns_to_retain: set):
+    def mapper(batch):
+        for column, converter in converters.items():
+            batch[column] = converter(batch[column])
+
+        return batch
+
+    ds = ds.map(mapper, batched=True)
+    ds.remove_columns_(set(ds.column_names) - columns_to_retain)
     return ds
