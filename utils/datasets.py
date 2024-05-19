@@ -40,7 +40,9 @@ def generate(config: DatasetConfig) -> DatasetDict:
 def process(ds, converters: Dict[str, Callable], columns_to_remove: set = {}):
     def mapper(batch):
         for column, converter in converters.items():
+            print(batch[column])
             batch[column] = converter(batch[column])
+            print(batch[column])
 
         return batch
 
