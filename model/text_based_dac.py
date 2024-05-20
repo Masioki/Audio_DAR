@@ -28,7 +28,9 @@ class TextBasedSentenceClassifier(PreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.config = config
-        self.backbone = BACKBONES[config.backbone](**config.backbone_kwargs)
+        features, self.backbone = BACKBONES[config.backbone]
+        self.backbone = self.backbone(**config.backbone_kwargs)
+
         if config.multilabel:
             self.loss = nn.BCEWithLogitsLoss()
         else:
@@ -51,7 +53,7 @@ class TextBasedSentenceClassifier(PreTrainedModel):
 
         self.model = nn.Sequential(
             nn.Dropout(self.config.dropout),
-            nn.LazyLinear(self.config.hidden_size),
+            nn.Linear(features, self.config.hidden_size),
             nn.Tanh(),
             nn.Dropout(self.config.dropout),
             nn.Linear(self.config.hidden_size, self.config.labels),
