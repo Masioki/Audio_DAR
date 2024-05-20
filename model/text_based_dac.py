@@ -8,7 +8,8 @@ from model.utils import wmean_pooling, mean_pooling, cls_token
 class TextBasedSentenceClassifierConfig(PretrainedConfig):
     model_type = 'text-based-sentence-classifier'
 
-    def __init__(self, backbone: str, labels: int, multilabel=False, embedding_strategy: str = 'wmean-pooling',
+    def __init__(self, backbone: str = "phi-3-freezed", labels: int = 18, multilabel=False,
+                 embedding_strategy: str = 'wmean-pooling',
                  backbone_kwargs: dict = {}, backbone_module: str = None, hidden_size: int = 768, dropout: float = 0.1,
                  **kwargs):
         super().__init__(**kwargs)
