@@ -114,6 +114,8 @@ def freeze(model):
 
 
 def wmean_pooling(model, input_ids, attention_mask, **kwargs):
+    print(model)
+    print(model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs))
     last_hidden_state = \
         model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[-1]
     if attention_mask is None:
