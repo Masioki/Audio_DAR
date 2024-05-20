@@ -1,4 +1,4 @@
-from typing import Dict, Callable
+from typing import Callable, List
 
 from datasets import DatasetDict
 from datasets.data_files import EmptyDatasetError
@@ -37,15 +37,8 @@ def generate(config: DatasetConfig) -> DatasetDict:
     return ds
 
 
-def process(ds, converters: Dict[str, Callable], columns_to_remove: set = {}):
-    def mapper(batch):
-        for column, converter in converters.items():
-            print(batch[column])
-            batch[column] = converter(batch[column])
-            print(batch[column])
-
-        return batch
-
-    ds = ds.map(mapper, batched=True)
-    ds.remove_columns(columns_to_remove)
+def process(ds, mappers: List[Callable], columns_to_remove: set = {}):
+    for mapper in mappers:
+        ds = ds.map(mapper, batched=True)
+    ds = ds.remove_columns(columns_to_remove)
     return ds

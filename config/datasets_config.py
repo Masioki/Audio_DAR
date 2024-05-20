@@ -3,6 +3,28 @@ from dataset_processors.generator import OrderedHfDatasetGenerator
 from dataset_processors.swda.generator import SwdaDatasetGenerator
 from utils.config import DatasetConfig
 
+SLUE_ID_2_LABEL = {
+    0: "question_check",
+    1: "question_repeat",
+    2: "question_general",
+    3: "answer_agree",
+    4: "answer_dis",
+    5: "answer_general",
+    6: "apology",
+    7: "thanks",
+    8: "acknowledge",
+    9: "statement_open",
+    10: "statement_close",
+    11: "statement_problem",
+    12: "statement_instruct",
+    13: "statement_general",
+    14: "backchannel",
+    15: "disfluency",
+    16: "self",
+    17: "other"
+}
+
+SLUE_LABEL_2_ID = {v: k for k, v in SLUE_ID_2_LABEL.items()}
 
 class Dataset:
     SWDA = DatasetConfig(

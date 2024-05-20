@@ -1,10 +1,31 @@
 import os
-from typing import Any
+from typing import Any, List, Dict
 
+import numpy as np
 import torch
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from transformers import AutoModel, Trainer, TrainingArguments, DataCollatorWithPadding, EarlyStoppingCallback
 
+from config.datasets_config import SLUE_LABEL_2_ID
+
+
+def slue_label_to_id(batch):
+    batch['labels'] = label_to_id(batch['dialog_acts'], SLUE_LABEL_2_ID)
+    return batch
+
+
+def label_to_id(batch, label2id):
+    return [one_hot_label_to_id(label, label2id) for label in batch]
+
+
+def one_hot_label_to_id(labels: str | List[str], label2id: Dict[str, int]):
+    if isinstance(labels, str):
+        indices = [label2id[labels]]
+    else:
+        indices = [label2id[label] for label in labels]
+    binary = np.zeros(len(label2id))
+    binary[indices] = 1
+    return binary
 
 def multi_label_compute_metrics(p):
     predictions, labels = p
