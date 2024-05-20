@@ -3,6 +3,7 @@ from typing import Any, List, Dict
 
 import numpy as np
 import torch
+from ray import tune
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from transformers import AutoModel, Trainer, TrainingArguments, DataCollatorWithPadding, EarlyStoppingCallback
 
@@ -53,9 +54,17 @@ def single_label_compute_metrics(p):
     }
 
 
-def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 2, weight_decay: float = 0.01,
-          lr: float = 2e-5, tag: str = "default", patience: int = 10):
-    model_output_dir = str(os.path.join(root_path, name, tag))
+def ray_hp_space(trial):
+    return {
+        "weight_decay": tune.loguniform(0.001, 0.1),
+        "learning_rate": tune.loguniform(1e-6, 1e-4),
+        "per_device_train_batch_size": tune.choice([8, 16, 32, 64]),
+    }
+
+
+def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 2, hp_space=ray_hp_space,
+          tag: str = "default", patience: int = 10):
+    model_output_dir = str(os.path.join(root_path, name + "@" + tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
         save_strategy="no",
@@ -63,13 +72,14 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         eval_steps=500,
         logging_strategy="steps",
         logging_steps=500,
-        learning_rate=lr,
-        per_device_train_batch_size=16,
+        # learning_rate=lr,
+        # per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
         num_train_epochs=epochs,
-        weight_decay=weight_decay,
+        # weight_decay=weight_decay,
         load_best_model_at_end=True,
-        report_to="tensorboard"
+        report_to="tensorboard",
+        ray_scope="all"
     )
 
     trainer = Trainer(
@@ -82,10 +92,15 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
-    trainer.train()
+    train_res = trainer.hyperparameter_search(
+        direction="maximize",
+        backend="ray",
+        hp_space=hp_space,
+        n_trials=10,
+    )
     eval_res = trainer.evaluate(ds["test"])
-    trainer.push_to_hub(tags=[tag])
-    return eval_res, model_output_dir
+    trainer.push_to_hub()
+    return train_res, eval_res, model_output_dir
 
 
 def _load_model(name: str, **kwargs) -> Any:

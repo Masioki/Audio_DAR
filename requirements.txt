@@ -8,6 +8,6 @@ colorlog~=6.8.2
 soundfile
 huggingface-hub~=0.23.0
 librosa
-datasets[audio]
 transformers~=4.41.0
 scikit-learn~=1.4.2
+ray[tune]
