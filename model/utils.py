@@ -62,7 +62,7 @@ def ray_hp_space(trial):
     }
 
 
-def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 2, hp_space=ray_hp_space,
+def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 5, hp_space=ray_hp_space,
           tag: str = "default", patience: int = 10):
     model_output_dir = str(os.path.join(root_path, name + "@" + tag))
     training_args = TrainingArguments(
@@ -73,11 +73,11 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         eval_steps=500,
         logging_strategy="steps",
         logging_steps=500,
-        # learning_rate=lr,
-        # per_device_train_batch_size=16,
+        learning_rate=4e-5,
+        per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
         num_train_epochs=epochs,
-        # weight_decay=weight_decay,
+        weight_decay=0.01,
         load_best_model_at_end=True,
         report_to="tensorboard",
         ray_scope="all"
@@ -93,12 +93,13 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
-    train_res = trainer.hyperparameter_search(
-        direction="maximize",
-        backend="ray",
-        hp_space=hp_space,
-        n_trials=10,
-    )
+    train_res = trainer.train()
+    # train_res = trainer.hyperparameter_search(
+    #     direction="maximize",
+    #     backend="ray",
+    #     hp_space=hp_space,
+    #     n_trials=10,
+    # )
     eval_res = trainer.evaluate(ds["test"])
     trainer.push_to_hub()
     return train_res, eval_res, model_output_dir
