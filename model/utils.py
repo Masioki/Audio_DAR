@@ -67,7 +67,8 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
     model_output_dir = str(os.path.join(root_path, name + "@" + tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
-        save_strategy="no",
+        save_strategy="steps",
+        save_steps=500,
         eval_strategy="steps",
         eval_steps=500,
         logging_strategy="steps",
