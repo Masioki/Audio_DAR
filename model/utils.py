@@ -77,7 +77,7 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         gradient_accumulation_steps=4,
         per_device_train_batch_size=2,
         per_device_eval_batch_size=2,
-        gradient_checkpointing=True,
+        # gradient_checkpointing=True,
         fp16=True,
         num_train_epochs=epochs,
         weight_decay=0.01,
