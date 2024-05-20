@@ -122,8 +122,9 @@ def wmean_pooling(model, input_ids, attention_mask, **kwargs):
     last_hidden_state = \
         model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[-1]
     if attention_mask is None:
-        attention_mask = torch.ones_like(input_ids)
-    weights_for_non_padding = attention_mask * torch.arange(start=1, end=last_hidden_state.shape[1] + 1).unsqueeze(0)
+        attention_mask = torch.ones_like(input_ids).cuda()
+    weights_for_non_padding = attention_mask * torch.arange(start=1, end=last_hidden_state.shape[1] + 1).unsqueeze(
+        0).cuda()
     sum_embeddings = torch.sum(last_hidden_state * weights_for_non_padding.unsqueeze(-1), dim=1)
     num_of_none_padding_tokens = torch.sum(weights_for_non_padding, dim=-1).unsqueeze(-1)
     return sum_embeddings / num_of_none_padding_tokens
