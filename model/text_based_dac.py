@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 import torch
 import torch.nn as nn
 from transformers import PreTrainedModel, PretrainedConfig
@@ -37,17 +35,17 @@ class TextBasedSentenceClassifier(PreTrainedModel):
         sentence_embedding = LlmBasedEmbedding(config)
         if config.backbone_freezed:
             sentence_embedding = freeze(sentence_embedding)
-        self.model = nn.Sequential(OrderedDict([
-            ('sentence_embedding', sentence_embedding),
-            ('head', SentenceClassifierHead(features, config))
-        ]))
+        self.sentence_embedding = sentence_embedding
+        self.head = SentenceClassifierHead(features, config)
+
         if self.config.multilabel:
             self.loss = nn.BCEWithLogitsLoss()
         else:
             self.loss = nn.CrossEntropyLoss()
 
     def forward(self, input_ids, labels=None, attention_mask=None, **kwargs):
-        logits = self.model(input_ids, attention_mask, **kwargs)
+        se = self.sentence_embedding(input_ids, attention_mask, **kwargs)
+        logits = self.head(se)
         loss = None
         if labels is not None:
             loss = self.loss(logits, labels.float())
