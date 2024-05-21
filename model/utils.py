@@ -33,7 +33,6 @@ def one_hot_label_to_id(labels: str | List[str], label2id: Dict[str, int]):
 def multi_label_compute_metrics(p):
     predictions, labels = p
     predictions = torch.sigmoid(torch.from_numpy(predictions)).cpu().detach().numpy()
-    labels = labels.cpu().detach().numpy()
     return {
         "precision": precision_score(labels, predictions > 0.5, average='micro'),
         "recall": recall_score(labels, predictions > 0.5, average='micro'),
@@ -46,7 +45,6 @@ def multi_label_compute_metrics(p):
 def single_label_compute_metrics(p):
     predictions, labels = p
     predictions = torch.softmax(torch.from_numpy(predictions), dim=-1).argmax(dim=-1).cpu().detach().numpy()
-    labels = labels.cpu().detach().numpy()
     return {
         "precision": precision_score(labels, predictions, average='micro'),
         "recall": recall_score(labels, predictions, average='micro'),
