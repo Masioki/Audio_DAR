@@ -79,7 +79,7 @@ def train(
         patience: int = 10,
         n_trials: int = 5
 ):
-    model_output_dir = str(os.path.join(root_path, name + "@" + tag))
+    model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
         save_strategy="steps",
