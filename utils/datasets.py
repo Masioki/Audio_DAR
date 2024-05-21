@@ -42,3 +42,16 @@ def process(ds, mappers: List[Callable], columns_to_remove: set = {}):
         ds = ds.map(mapper, batched=True)
     ds = ds.remove_columns(columns_to_remove)
     return ds
+
+
+def add_column(config: DatasetConfig, column_name: str, batched_mapper: Callable, save_to_hf: bool = False):
+    ds = get(config)
+    if ds is DatasetDict:
+        for split in ds.keys():
+            if column_name not in ds[split].column_names:
+                ds[split] = ds[split].map(lambda batch: {column_name: batched_mapper(batch)}, batched=True)
+    elif column_name not in ds.column_names:
+        ds = ds.map(lambda batch: {column_name: batched_mapper(batch)}, batched=True)
+    if save_to_hf:
+        upload(ds, config.repo_path, config.repo_name)
+    return ds

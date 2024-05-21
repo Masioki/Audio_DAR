@@ -1,7 +1,7 @@
-from model.utils import freeze, _load_model
+from model.utils import _load_model
 
 BACKBONES = {
-    "phi-3-freezed": (3072, lambda **kwargs: freeze(_load_model('microsoft/Phi-3-mini-4k-instruct', **kwargs))),
-    'whisper-encoder-tiny-freezed': (
-    3072, lambda **kwargs: freeze(_load_model("openai/whisper-tiny.en", **kwargs).encoder)),
+    "Phi-3-mini-4k-instruct": (3072, lambda **kwargs: _load_model('microsoft/Phi-3-mini-4k-instruct', **kwargs)),
+    "distilbert-base-uncased": (768, lambda **kwargs: _load_model('distilbert/distilbert-base-uncased', **kwargs)),
+    'whisper-encoder-tiny': (3072, lambda **kwargs: _load_model("openai/whisper-tiny.en", **kwargs).encoder),
 }

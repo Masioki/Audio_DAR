@@ -30,7 +30,7 @@ def one_hot_label_to_id(labels: str | List[str], label2id: Dict[str, int]):
 
 def multi_label_compute_metrics(p):
     predictions, labels = p
-    predictions = torch.sigmoid(predictions).cpu().detach().numpy()
+    predictions = torch.sigmoid(torch.from_numpy(predictions)).cpu().detach().numpy()
     labels = labels.cpu().detach().numpy()
     return {
         "precision": precision_score(labels, predictions > 0.5, average='micro'),
@@ -43,7 +43,7 @@ def multi_label_compute_metrics(p):
 
 def single_label_compute_metrics(p):
     predictions, labels = p
-    predictions = torch.softmax(predictions, dim=-1).argmax(dim=-1).cpu().detach().numpy()
+    predictions = torch.softmax(torch.from_numpy(predictions), dim=-1).argmax(dim=-1).cpu().detach().numpy()
     labels = labels.cpu().detach().numpy()
     return {
         "precision": precision_score(labels, predictions, average='micro'),
@@ -118,28 +118,24 @@ def freeze(model):
     return model
 
 
-def wmean_pooling(model, input_ids, attention_mask, **kwargs):
-    last_hidden_state = \
-        model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[-1]
+def wmean_pooling(last_hidden_state, input_ids, attention_mask, **kwargs):
     if attention_mask is None:
-        attention_mask = torch.ones_like(input_ids).cuda()
+        attention_mask = torch.ones_like(input_ids).to(last_hidden_state.device)
     weights_for_non_padding = attention_mask * torch.arange(start=1, end=last_hidden_state.shape[1] + 1).unsqueeze(
-        0).cuda()
+        0).to(last_hidden_state.device)
     sum_embeddings = torch.sum(last_hidden_state * weights_for_non_padding.unsqueeze(-1), dim=1)
     num_of_none_padding_tokens = torch.sum(weights_for_non_padding, dim=-1).unsqueeze(-1)
     return sum_embeddings / num_of_none_padding_tokens
 
 
-def mean_pooling(model, input_ids, attention_mask, **kwargs):
-    last_hidden_state = \
-        model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[-1]
+def mean_pooling(last_hidden_state, input_ids, attention_mask, **kwargs):
     if attention_mask is None:
-        attention_mask = torch.ones_like(input_ids)
+        attention_mask = torch.ones_like(input_ids).to(last_hidden_state.device)
     weights_for_non_padding = attention_mask.unsqueeze(-1)
     sum_embeddings = torch.sum(last_hidden_state * weights_for_non_padding, dim=1)
     num_of_none_padding_tokens = torch.sum(weights_for_non_padding, dim=-1).unsqueeze(-1)
     return sum_embeddings / num_of_none_padding_tokens
 
 
-def cls_token(model, input_ids, attention_mask, **kwargs):
-    return model(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).last_hidden_state[:, 0]
+def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
+    return last_hidden_state[:, 0]
