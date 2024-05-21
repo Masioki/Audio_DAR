@@ -3,6 +3,7 @@ from typing import Any, List, Dict
 
 import numpy as np
 import torch
+import torch.nn as nn
 from ray import tune
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from transformers import AutoModel, Trainer, TrainingArguments, DataCollatorWithPadding, EarlyStoppingCallback
@@ -27,6 +28,7 @@ def one_hot_label_to_id(labels: str | List[str], label2id: Dict[str, int]):
     binary = np.zeros(len(label2id))
     binary[indices] = 1
     return binary
+
 
 def multi_label_compute_metrics(p):
     predictions, labels = p
@@ -62,8 +64,23 @@ def ray_hp_space(trial):
     }
 
 
-def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epochs: int = 5, hp_space=ray_hp_space,
-          tag: str = "default", patience: int = 10):
+def train(
+        model_provider,
+        tokenizer,
+        root_path,
+        name,
+        ds,
+        compute_metrics,
+        epochs: int = 5,
+        report_to="tensorboard",
+        lr=4e-5,
+        weight_decay=0.01,
+        hp_space=None,
+        fp16=True,
+        tag: str = "default",
+        patience: int = 10,
+        n_trials: int = 5
+):
     model_output_dir = str(os.path.join(root_path, name + "@" + tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
@@ -73,16 +90,16 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         eval_steps=500,
         logging_strategy="steps",
         logging_steps=500,
-        learning_rate=4e-5,
+        learning_rate=lr,
         gradient_accumulation_steps=4,
         per_device_train_batch_size=2,
         per_device_eval_batch_size=2,
         # gradient_checkpointing=True,
-        fp16=True,
+        fp16=fp16,
         num_train_epochs=epochs,
-        weight_decay=0.01,
+        weight_decay=weight_decay,
         load_best_model_at_end=True,
-        report_to="tensorboard",
+        report_to=report_to,
         ray_scope="all"
     )
 
@@ -96,13 +113,15 @@ def train(model_provider, tokenizer, root_path, name, ds, compute_metrics, epoch
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
-    train_res = trainer.train()
-    # train_res = trainer.hyperparameter_search(
-    #     direction="maximize",
-    #     backend="ray",
-    #     hp_space=hp_space,
-    #     n_trials=10,
-    # )
+    if hp_space is None:
+        train_res = trainer.train()
+    else:
+        train_res = trainer.hyperparameter_search(
+            direction="maximize",
+            backend="ray",
+            hp_space=hp_space,
+            n_trials=n_trials,
+        )
     eval_res = trainer.evaluate(ds["test"])
     trainer.push_to_hub()
     return train_res, eval_res, model_output_dir
@@ -139,3 +158,12 @@ def mean_pooling(last_hidden_state, input_ids, attention_mask, **kwargs):
 
 def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
     return last_hidden_state[:, 0]
+
+
+class LambdaLayer(nn.Module):
+    def __init__(self, lambd):
+        super(LambdaLayer, self).__init__()
+        self.lambd = lambd
+
+    def forward(self, *args, **kwargs):
+        return self.lambd(*args, **kwargs)

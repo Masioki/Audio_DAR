@@ -1,8 +1,11 @@
+from collections import OrderedDict
+
+import torch
 import torch.nn as nn
 from transformers import PreTrainedModel, PretrainedConfig
 
 from model.config import BACKBONES
-from model.utils import wmean_pooling, mean_pooling, cls_token, freeze
+from model.utils import wmean_pooling, mean_pooling, cls_token, freeze, LambdaLayer
 
 
 class TextBasedSentenceClassifierConfig(PretrainedConfig):
@@ -29,20 +32,22 @@ class TextBasedSentenceClassifier(PreTrainedModel):
 
     def __init__(self, config):
         super().__init__(config)
-        features, _ = BACKBONES[config.backbone]
         self.config = config
-        if config.multilabel:
+        features, _ = BACKBONES[config.backbone]
+        sentence_embedding = LlmBasedEmbedding(config)
+        if config.backbone_freezed:
+            sentence_embedding = freeze(sentence_embedding)
+        self.model = nn.Sequential(OrderedDict([
+            ('sentence_embedding', sentence_embedding),
+            ('head', SentenceClassifierHead(features, config))
+        ]))
+        if self.config.multilabel:
             self.loss = nn.BCEWithLogitsLoss()
         else:
             self.loss = nn.CrossEntropyLoss()
-        self.sentence_embedding = LlmBasedEmbedding(config)
-        if config.backbone_freezed:
-            self.sentence_embedding = freeze(self.sentence_embedding.backbone)
-        self.head = SentenceClassifierHead(features, config)
 
     def forward(self, input_ids, labels=None, attention_mask=None, **kwargs):
-        sentence_embeddings = self.sentence_embedding(input_ids, attention_mask, **kwargs)
-        logits = self.head(sentence_embeddings)
+        logits = self.model(input_ids, attention_mask, **kwargs)
         loss = None
         if labels is not None:
             loss = self.loss(logits, labels.float())
@@ -51,7 +56,7 @@ class TextBasedSentenceClassifier(PreTrainedModel):
 
 class SentenceClassifierHead(nn.Module):
     def __init__(self, features, config):
-        super().__init__()
+        super(SentenceClassifierHead, self).__init__()
         self.config = config
         self.model = nn.Sequential(
             nn.Dropout(self.config.dropout),
@@ -67,10 +72,9 @@ class SentenceClassifierHead(nn.Module):
 
 class LlmBasedEmbedding(nn.Module):
     def __init__(self, config):
-        super().__init__()
+        super(LlmBasedEmbedding, self).__init__()
         self.config = config
         self.backbone = BACKBONES[config.backbone][1](**config.backbone_kwargs)
-        self.flatten = nn.Flatten(start_dim=1)
         self.hidden_state_extractor = lambda input_ids, attention_mask=None, **kwargs: \
             self.backbone(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[
                 -1]
@@ -86,7 +90,11 @@ class LlmBasedEmbedding(nn.Module):
                                                                                                          **kwargs)
             self.sentence_embedding = lambda outputs, input_ids, attention_mask, **kwargs: outputs
         else:
-            self.sentence_embedding = lambda outputs, input_ids, attention_mask, **kwargs: self.flatten(outputs)
+            self.sentence_embedding = lambda outputs, input_ids, attention_mask, **kwargs: torch.flatten(outputs,
+                                                                                                         start_dim=1)
+
+        self.hidden_state_extractor = LambdaLayer(self.hidden_state_extractor)
+        self.sentence_embedding = LambdaLayer(self.sentence_embedding)
 
     def get_embedding_before_pooling(self, input_ids, attention_mask=None, **kwargs):
         return self.hidden_state_extractor(input_ids, attention_mask, **kwargs)
