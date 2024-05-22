@@ -34,8 +34,10 @@ def multi_label_compute_metrics(p):
     predictions, labels = p
     predictions = torch.sigmoid(torch.from_numpy(predictions)).cpu().detach().numpy()
     return {
-        "precision": precision_score(labels, predictions > 0.5, average='micro'),
-        "recall": recall_score(labels, predictions > 0.5, average='micro'),
+        "precision-micro": precision_score(labels, predictions > 0.5, average='micro'),
+        "recall-micro": recall_score(labels, predictions > 0.5, average='micro'),
+        "precision-macro": precision_score(labels, predictions > 0.5, average='macro'),
+        "recall-macro": recall_score(labels, predictions > 0.5, average='macro'),
         "f1-micro": f1_score(labels, predictions > 0.5, average='micro'),
         "f1-macro": f1_score(labels, predictions > 0.5, average='macro'),
         "accuracy": accuracy_score(labels, predictions > 0.5),
@@ -46,8 +48,10 @@ def single_label_compute_metrics(p):
     predictions, labels = p
     predictions = torch.softmax(torch.from_numpy(predictions), dim=-1).argmax(dim=-1).cpu().detach().numpy()
     return {
-        "precision": precision_score(labels, predictions, average='micro'),
-        "recall": recall_score(labels, predictions, average='micro'),
+        "precision-micro": precision_score(labels, predictions, average='micro'),
+        "recall-micro": recall_score(labels, predictions, average='micro'),
+        "precision-macro": precision_score(labels, predictions, average='macro'),
+        "recall-macro": recall_score(labels, predictions, average='macro'),
         "f1-micro": f1_score(labels, predictions, average='micro'),
         "f1-macro": f1_score(labels, predictions, average='macro'),
         "accuracy": accuracy_score(labels, predictions),
