@@ -36,10 +36,10 @@ def multi_label_compute_metrics(p):
     return {
         "precision-micro": precision_score(labels, predictions > 0.5, average='micro'),
         "recall-micro": recall_score(labels, predictions > 0.5, average='micro'),
-        "precision-macro": precision_score(labels, predictions > 0.5, average='macro'),
         "recall-macro": recall_score(labels, predictions > 0.5, average='macro'),
         "f1-micro": f1_score(labels, predictions > 0.5, average='micro'),
         "f1-macro": f1_score(labels, predictions > 0.5, average='macro'),
+        "f1-weighted": f1_score(labels, predictions > 0.5, average='weighted'),
         "accuracy": accuracy_score(labels, predictions > 0.5),
     }
 
@@ -50,10 +50,10 @@ def single_label_compute_metrics(p):
     return {
         "precision-micro": precision_score(labels, predictions, average='micro'),
         "recall-micro": recall_score(labels, predictions, average='micro'),
-        "precision-macro": precision_score(labels, predictions, average='macro'),
         "recall-macro": recall_score(labels, predictions, average='macro'),
         "f1-micro": f1_score(labels, predictions, average='micro'),
         "f1-macro": f1_score(labels, predictions, average='macro'),
+        "f1-weighted": f1_score(labels, predictions, average='weighted'),
         "accuracy": accuracy_score(labels, predictions),
     }
 
@@ -86,6 +86,7 @@ def train(
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
         output_dir=model_output_dir,
+        save_total_limit=1,
         save_strategy="steps",
         save_steps=500,
         eval_strategy="steps",
