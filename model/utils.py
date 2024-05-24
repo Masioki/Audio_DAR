@@ -81,7 +81,8 @@ def train(
         fp16=True,
         tag: str = "default",
         patience: int = 10,
-        n_trials: int = 5
+        n_trials: int = 5,
+        hp_objective: str = "f1-macro"
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
@@ -123,6 +124,7 @@ def train(
             backend="ray",
             hp_space=hp_space,
             n_trials=n_trials,
+            compute_objective=lambda metrics: metrics[hp_objective],
         )
     eval_res = trainer.evaluate(ds["test"])
     trainer.push_to_hub()
