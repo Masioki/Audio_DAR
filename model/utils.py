@@ -102,8 +102,7 @@ def train(
         num_train_epochs=epochs,
         weight_decay=weight_decay,
         load_best_model_at_end=True,
-        report_to=report_to,
-        ray_scope="all"
+        report_to=report_to
     )
 
     trainer = Trainer(
