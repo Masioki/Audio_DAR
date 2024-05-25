@@ -43,8 +43,8 @@ class TextBasedSentenceClassifier(PreTrainedModel):
         else:
             self.loss = nn.CrossEntropyLoss()
 
-    def forward(self, input_ids, labels=None, attention_mask=None, **kwargs):
-        se = self.sentence_embedding(input_ids, attention_mask, **kwargs)
+    def forward(self, input_ids, labels=None, attention_mask=None, hidden_states=None, **kwargs):
+        se = self.sentence_embedding(input_ids, attention_mask, hidden_states, **kwargs)
         logits = self.head(se)
         loss = None
         if labels is not None:

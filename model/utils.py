@@ -82,7 +82,7 @@ def train(
         tag: str = "default",
         patience: int = 10,
         n_trials: int = 5,
-        hp_objective: str = "f1-macro"
+        hp_objective: str = "eval_f1-macro"
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
