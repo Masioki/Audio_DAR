@@ -101,5 +101,5 @@ class LlmBasedEmbedding(nn.Module):
         if hidden_states is None:
             output = self.get_embedding_before_pooling(input_ids, attention_mask, **kwargs)
         else:
-            output = hidden_states.to(self.device)
+            output = hidden_states
         return self.sentence_embedding(output, input_ids, attention_mask, **kwargs)
