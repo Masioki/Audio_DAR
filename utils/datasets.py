@@ -60,3 +60,10 @@ def add_column(config: DatasetConfig, column_name: str, batched_mapper: Callable
     if save_to_hf and changed:
         upload(ds, config.repo_path, config.repo_name)
     return ds
+
+
+def remove_column(config: DatasetConfig, column_name: str):
+    ds = get(config)
+    ds = ds.remove_columns([column_name])
+    upload(ds, config.repo_path, config.repo_name)
+    return ds

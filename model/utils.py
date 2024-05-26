@@ -3,10 +3,9 @@ from typing import Any, List, Dict
 
 import numpy as np
 import torch
-import torch.nn as nn
 from ray import tune
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
-from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
+from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback, DataCollatorWithPadding
 
 from config.datasets_config import SLUE_LABEL_2_ID
 
@@ -112,8 +111,8 @@ def train(
         train_dataset=ds["train"],
         eval_dataset=ds["validation"],
         args=training_args,
-        # tokenizer=tokenizer,
-        # data_collator=DataCollatorWithPadding(tokenizer, padding='max_length'),
+        tokenizer=tokenizer,
+        data_collator=DataCollatorWithPadding(tokenizer),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
@@ -165,10 +164,4 @@ def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
     return last_hidden_state[:, 0]
 
 
-class LambdaLayer(nn.Module):
-    def __init__(self, lambd):
-        super(LambdaLayer, self).__init__()
-        self.lambd = lambd
 
-    def forward(self, *args, **kwargs):
-        return self.lambd(*args, **kwargs)
