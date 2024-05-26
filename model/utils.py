@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from ray import tune
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
-from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback, DataCollatorWithPadding
+from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
 
 from config.datasets_config import SLUE_LABEL_2_ID
 
@@ -111,8 +111,8 @@ def train(
         train_dataset=ds["train"],
         eval_dataset=ds["validation"],
         args=training_args,
-        tokenizer=tokenizer,
-        data_collator=DataCollatorWithPadding(tokenizer),
+        # tokenizer=tokenizer,
+        # data_collator=DataCollatorWithPadding(tokenizer),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
