@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from ray import tune
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
-from transformers import AutoModel, Trainer, TrainingArguments, DataCollatorWithPadding, EarlyStoppingCallback
+from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
 
 from config.datasets_config import SLUE_LABEL_2_ID
 
@@ -103,7 +103,8 @@ def train(
         num_train_epochs=epochs,
         weight_decay=weight_decay,
         load_best_model_at_end=True,
-        report_to=report_to
+        report_to=report_to,
+        remove_unused_columns=False
     )
 
     trainer = Trainer(
@@ -111,15 +112,15 @@ def train(
         train_dataset=ds["train"],
         eval_dataset=ds["validation"],
         args=training_args,
-        tokenizer=tokenizer,
-        data_collator=DataCollatorWithPadding(tokenizer, padding='max_length'),
+        # tokenizer=tokenizer,
+        # data_collator=DataCollatorWithPadding(tokenizer, padding='max_length'),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
     if hp_space is None:
         train_res = trainer.train()
     else:
-        train_res = trainer.hyperparameter_search(
+        return trainer.hyperparameter_search(
             direction="maximize",
             backend="ray",
             hp_space=hp_space,
