@@ -35,7 +35,7 @@ class SelfAttentionPooling(nn.Module):
         super(SelfAttentionPooling, self).__init__()
         self.W = nn.Linear(input_dim, 1)
 
-    def forward(self, x, **kwargs):
+    def forward(self, x, input_ids=None, attention_mask=None, **kwargs):
         weights = self.W(x).squeeze(-1)
         attention_scores = F.softmax(weights).unsqueeze(-1)
 

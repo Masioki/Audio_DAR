@@ -103,7 +103,7 @@ def train(
         weight_decay=weight_decay,
         load_best_model_at_end=True,
         report_to=report_to,
-        remove_unused_columns=True
+        remove_unused_columns=False
     )
 
     trainer = Trainer(
