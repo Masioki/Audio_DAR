@@ -4,6 +4,7 @@ from typing import Any, List, Dict
 import numpy as np
 import torch
 from ray import tune
+from ray.tune.schedulers import MedianStoppingRule
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
 
@@ -75,13 +76,16 @@ def train(
         epochs: int = 5,
         report_to="tensorboard",
         lr=4e-5,
-        weight_decay=0.01,
+        weight_decay=1e-5,
         hp_space=None,
         fp16=True,
         tag: str = "default",
         patience: int = 10,
         n_trials: int = 5,
-        hp_objective: str = "eval_f1-macro"
+        hp_objective: str = "eval_f1-macro",
+        metric_for_best_model: str = "eval_f1-macro",
+        val_splits: List[str] = ["validation"],
+        eval_splits: List[str] = ["test"],
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
@@ -103,13 +107,19 @@ def train(
         weight_decay=weight_decay,
         load_best_model_at_end=True,
         report_to=report_to,
-        remove_unused_columns=False
+        remove_unused_columns=False,
+        metric_for_best_model=metric_for_best_model
     )
+
+    if len(val_splits) <= 1:
+        test_ds = ds[val_splits[0]]
+    else:
+        test_ds = {split: ds[split] for split in val_splits}
 
     trainer = Trainer(
         model_init=model_provider,
         train_dataset=ds["train"],
-        eval_dataset=ds["validation"],
+        eval_dataset=test_ds,
         args=training_args,
         # tokenizer=tokenizer,
         # data_collator=DataCollatorWithPadding(tokenizer),
@@ -125,8 +135,14 @@ def train(
             hp_space=hp_space,
             n_trials=n_trials,
             compute_objective=lambda metrics: metrics[hp_objective],
+            scheduler=MedianStoppingRule(time_attr="training_iteration", grace_period=3, min_samples_required=3),
         )
-    eval_res = trainer.evaluate(ds["test"])
+
+    if len(eval_splits) <= 1:
+        eval_ds = ds[eval_splits[0]]
+    else:
+        eval_ds = {split: ds[split] for split in eval_splits}
+    eval_res = trainer.evaluate(eval_ds)
     trainer.push_to_hub()
     return train_res, eval_res, model_output_dir
 

@@ -14,7 +14,7 @@ class SingleEmbeddingSentenceClassifierConfig(PretrainedConfig):
     def __init__(self, backbone: str = "Phi-3-mini-4k-instruct", labels: int = 18, multilabel=False,
                  embedding_strategy: str = 'wmean-pooling',
                  backbone_freezed: bool = True,
-                 backbone_kwargs: dict = {}, hidden_size: int = 768, dropout: float = 0.1,
+                 backbone_kwargs: dict = {}, hidden_size: int = 768, dropout: float = 0.3,
                  **kwargs):
         super().__init__(**kwargs)
         self.backbone = backbone

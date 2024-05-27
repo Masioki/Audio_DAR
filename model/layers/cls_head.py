@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class SentenceClassifierHead(nn.Module):
-    def __init__(self, features, hid_size, labels, dropout=0.1):
+    def __init__(self, features, hid_size, labels, dropout=0.3):
         super(SentenceClassifierHead, self).__init__()
         self.model = nn.Sequential(
             nn.Dropout(dropout),

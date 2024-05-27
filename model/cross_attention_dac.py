@@ -24,7 +24,7 @@ class CrossAttentionSentenceClassifierConfig(PretrainedConfig):
                  multilabel=False,
                  embedding_strategy: str = 'wmean-pooling',
                  hidden_size: int = 768,
-                 dropout: float = 0.1,
+                 dropout: float = 0.3,
                  **kwargs):
         super().__init__(**kwargs)
         self.q_backbone = q_backbone
