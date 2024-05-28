@@ -7,7 +7,7 @@ from ray import tune
 from ray.tune.schedulers import MedianStoppingRule
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 from torch.nn.utils.rnn import pad_sequence
-from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback, DataCollator
+from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
 
 from config.datasets_config import SLUE_LABEL_2_ID
 
@@ -181,7 +181,7 @@ def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
     return last_hidden_state[:, 0]
 
 
-class CustomDataCollator(DataCollator):
+class CustomDataCollator():
     def __init__(self):
         super().__init__()
 
