@@ -87,7 +87,8 @@ def train(
         metric_for_best_model: str = None,
         val_splits: List[str] = ["validation"],
         eval_splits: List[str] = ["test"],
-        skip_memory_metrics=False
+        skip_memory_metrics=False,
+        pad_to={}
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
@@ -125,7 +126,7 @@ def train(
         eval_dataset=test_ds,
         args=training_args,
         tokenizer=tokenizer,
-        data_collator=CustomDataCollator(),
+        data_collator=CustomDataCollator(pad_to),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
@@ -185,8 +186,9 @@ def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
 
 
 class CustomDataCollator():
-    def __init__(self):
+    def __init__(self, pad_to):
         super().__init__()
+        self.pad_to = pad_to
 
     def __call__(self, features):
         if not isinstance(features[0], Mapping):
@@ -201,4 +203,8 @@ class CustomDataCollator():
                     batch[k] = torch.tensor(np.stack([f[k] for f in features]))
                 else:
                     batch[k] = pad_sequence([torch.tensor(f[k]) for f in features], batch_first=True)
+        for k, v in self.pad_to.items():
+            ex_shape = batch[k].shape[1]
+            batch[v] = torch.nn.functional.pad(batch[v], (0, 0, 0, ex_shape - batch[v].shape[1]), mode='constant',
+                                               value=0)
         return batch
