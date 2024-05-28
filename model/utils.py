@@ -86,7 +86,8 @@ def train(
         hp_objective: str = "eval_f1-macro",
         metric_for_best_model: str = None,
         val_splits: List[str] = ["validation"],
-        eval_splits: List[str] = ["test"]
+        eval_splits: List[str] = ["test"],
+        skip_memory_metrics=False
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
@@ -109,7 +110,8 @@ def train(
         load_best_model_at_end=True,
         report_to=report_to,
         remove_unused_columns=False,
-        metric_for_best_model=metric_for_best_model
+        metric_for_best_model=metric_for_best_model,
+        skip_memory_metrics=skip_memory_metrics,
     )
 
     if len(val_splits) <= 1:
