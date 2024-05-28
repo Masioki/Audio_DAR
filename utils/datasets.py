@@ -52,8 +52,8 @@ def add_column(config: DatasetConfig, column_name: str, batched_mapper: Callable
             if column_name not in ds[split].features.keys():
                 ds[split] = ds[split].map(lambda batch: {column_name: batched_mapper(batch)}, batched=True,
                                           batch_size=batch_size)
-                if save_to_hf:
-                    upload(ds[split], config.repo_path, config.repo_name, split=split)
+        if save_to_hf:
+            upload(ds, config.repo_path, config.repo_name)
     elif column_name not in ds.features.keys():
         ds = ds.map(lambda batch: {column_name: batched_mapper(batch)}, batched=True, batch_size=batch_size)
         if save_to_hf:

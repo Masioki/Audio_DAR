@@ -138,7 +138,8 @@ def train(
             hp_space=hp_space,
             n_trials=n_trials,
             compute_objective=lambda metrics: metrics[hp_objective],
-            scheduler=MedianStoppingRule(time_attr="training_iteration", grace_period=3, min_samples_required=3),
+            scheduler=MedianStoppingRule(time_attr="training_iteration", metric=hp_objective, grace_period=3,
+                                         min_samples_required=3),
         )
 
     if len(eval_splits) <= 1:

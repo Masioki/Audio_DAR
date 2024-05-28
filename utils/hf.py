@@ -18,6 +18,9 @@ def login_to_hf():
 def upload(ds: Dataset | DatasetDict, path: str, name: str = "default", split: str = None):
     login_to_hf()
     log.info(f"Uploading dataset {path}/{name}/{split} to HF")
+    if type(ds) == DatasetDict:
+        ds.push_to_hub(path, name)
+        return
     ds.push_to_hub(path, name, split=split)
 
 
