@@ -8,14 +8,14 @@ from utils.config import DatasetConfig
 from utils.hf import upload, load_ds
 
 
-def get(config: DatasetConfig, split: str = None, allow_generation: bool = False, force_regenerate: bool = False):
+def get(config: DatasetConfig, splits=None, allow_generation: bool = False, force_regenerate: bool = False):
     try:
         log.info(f"Loading dataset {config.repo_path}/{config.repo_name}")
         if force_regenerate:
             log.info(f"Force regenerating")
             return generate(config)
         try:
-            return load_ds(config.repo_path, config.repo_name, split)
+            return load_ds(config.repo_path, config.repo_name, splits)
         except EmptyDatasetError as e:
             log.info(f"Dataset empty, regenerating")
             if allow_generation:
@@ -45,20 +45,19 @@ def process(ds, mappers: List[Callable], columns_to_remove: set = {}):
 
 
 def add_column(config: DatasetConfig, column_name: str, batched_mapper: Callable, save_to_hf: bool = False,
-               batch_size: int = 8):
-    ds = get(config)
-    changed = False
+               batch_size: int = 8, splits: str = None):
+    ds = get(config, splits=splits)
     if type(ds) == DatasetDict:
         for split in ds.keys():
             if column_name not in ds[split].features.keys():
-                changed = True
                 ds[split] = ds[split].map(lambda batch: {column_name: batched_mapper(batch)}, batched=True,
                                           batch_size=batch_size)
+                if save_to_hf:
+                    upload(ds[split], config.repo_path, config.repo_name, split=split)
     elif column_name not in ds.features.keys():
-        changed = True
         ds = ds.map(lambda batch: {column_name: batched_mapper(batch)}, batched=True, batch_size=batch_size)
-    if save_to_hf and changed:
-        upload(ds, config.repo_path, config.repo_name)
+        if save_to_hf:
+            upload(ds, config.repo_path, config.repo_name, split=splits)
     return ds
 
 

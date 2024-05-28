@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SAMPLE_RATE = int(os.environ.get("SAMPLE_RATE", 512))
+SAMPLE_RATE = int(os.environ.get("SAMPLE_RATE", 16000))
 HF_CONFIG = {
     "token": os.environ.get("HF_TOKEN"),
     "write_permission": bool(os.environ.get("HF_WRITE_PERMISSION", False))

@@ -15,15 +15,17 @@ def login_to_hf():
         log.exception(f"Failed to login to HF")
 
 
-def upload(ds: Dataset | DatasetDict, path: str, name: str = "default"):
+def upload(ds: Dataset | DatasetDict, path: str, name: str = "default", split: str = None):
     login_to_hf()
-    log.info(f"Uploading dataset {path}/{name} to HF")
-    ds.push_to_hub(path, name)
+    log.info(f"Uploading dataset {path}/{name}/{split} to HF")
+    ds.push_to_hub(path, name, split=split)
 
 
-def load_ds(path: str, name: str = None, split: str = None) -> Dataset | DatasetDict:
-    log.debug(f"Loading dataset {path}/{name}/{split} from HF")
-    return load_dataset(path, name=name, split=split)
+def load_ds(path: str, name: str = None, splits=None) -> Dataset | DatasetDict:
+    log.debug(f"Loading dataset {path}/{name}/{splits} from HF")
+    if splits and type(splits) == list:
+        return DatasetDict({split: load_dataset(path, name=name, split=split) for split in splits})
+    return load_dataset(path, name=name, split=splits)
 
 
 def load_model(name: str, **kwargs) -> Any:
