@@ -197,5 +197,5 @@ class CustomDataCollator(DataCollatorWithPadding):
                 elif isinstance(v, np.ndarray):
                     batch[k] = torch.tensor(np.stack([f[k] for f in features]))
                 else:
-                    batch[k] = pad_sequence([torch.tensor(f[k]) for f in features])
+                    batch[k] = pad_sequence([torch.tensor(f[k]) for f in features], batch_first=True)
         return batch
