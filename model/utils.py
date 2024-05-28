@@ -1,12 +1,13 @@
 import os
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Mapping
 
 import numpy as np
 import torch
 from ray import tune
 from ray.tune.schedulers import MedianStoppingRule
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
-from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
+from torch.nn.utils.rnn import pad_sequence
+from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback, DataCollatorWithPadding
 
 from config.datasets_config import SLUE_LABEL_2_ID
 
@@ -83,9 +84,9 @@ def train(
         patience: int = 10,
         n_trials: int = 5,
         hp_objective: str = "eval_f1-macro",
-        metric_for_best_model: str = "eval_f1-macro",
+        metric_for_best_model: str = None,
         val_splits: List[str] = ["validation"],
-        eval_splits: List[str] = ["test"],
+        eval_splits: List[str] = ["test"]
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
     training_args = TrainingArguments(
@@ -121,8 +122,8 @@ def train(
         train_dataset=ds["train"],
         eval_dataset=test_ds,
         args=training_args,
-        # tokenizer=tokenizer,
-        # data_collator=DataCollatorWithPadding(tokenizer),
+        tokenizer=tokenizer,
+        data_collator=CustomDataCollator(),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
     )
@@ -180,4 +181,21 @@ def cls_token(last_hidden_state, input_ids, attention_mask, **kwargs):
     return last_hidden_state[:, 0]
 
 
+class CustomDataCollator(DataCollatorWithPadding):
+    def __init__(self):
+        super().__init__()
 
+    def __call__(self, features):
+        if not isinstance(features[0], Mapping):
+            features = [vars(f) for f in features]
+        first = features[0]
+        batch = {}
+        for k, v in first.items():
+            if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
+                if isinstance(v, torch.Tensor):
+                    batch[k] = pad_sequence([f[k] for f in features], batch_first=True)
+                elif isinstance(v, np.ndarray):
+                    batch[k] = torch.tensor(np.stack([f[k] for f in features]))
+                else:
+                    batch[k] = pad_sequence([torch.tensor(f[k]) for f in features])
+        return batch
