@@ -1,7 +1,7 @@
 from typing import Any
 
 import huggingface_hub as hub
-from datasets import Dataset, load_dataset, DatasetDict
+from datasets import Dataset, load_dataset, DatasetDict, IterableDatasetDict, IterableDataset
 from transformers import AutoModel
 
 from config.global_config import HF_CONFIG, log
@@ -24,11 +24,15 @@ def upload(ds: Dataset | DatasetDict, path: str, name: str = "default", split: s
     ds.push_to_hub(path, name, split=split)
 
 
-def load_ds(path: str, name: str = None, splits=None) -> Dataset | DatasetDict:
+def load_ds(path: str, name: str = None, splits=None,
+            streaming: bool = False) -> Dataset | DatasetDict | IterableDatasetDict | IterableDataset:
     log.debug(f"Loading dataset {path}/{name}/{splits} from HF")
     if splits and type(splits) == list:
+        if streaming:
+            return IterableDatasetDict(
+                {split: load_dataset(path, name=name, split=split, streaming=streaming) for split in splits})
         return DatasetDict({split: load_dataset(path, name=name, split=split) for split in splits})
-    return load_dataset(path, name=name, split=splits)
+    return load_dataset(path, name=name, split=splits, streaming=streaming)
 
 
 def load_model(name: str, **kwargs) -> Any:

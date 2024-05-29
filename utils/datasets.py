@@ -8,14 +8,15 @@ from utils.config import DatasetConfig
 from utils.hf import upload, load_ds
 
 
-def get(config: DatasetConfig, splits=None, allow_generation: bool = False, force_regenerate: bool = False):
+def get(config: DatasetConfig, splits=None, allow_generation: bool = False, force_regenerate: bool = False,
+        streaming: bool = False):
     try:
         log.info(f"Loading dataset {config.repo_path}/{config.repo_name}")
         if force_regenerate:
             log.info(f"Force regenerating")
             return generate(config)
         try:
-            return load_ds(config.repo_path, config.repo_name, splits)
+            return load_ds(config.repo_path, config.repo_name, splits, streaming)
         except EmptyDatasetError as e:
             log.info(f"Dataset empty, regenerating")
             if allow_generation:

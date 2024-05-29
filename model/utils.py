@@ -88,6 +88,7 @@ def train(
         val_splits: List[str] = ["validation"],
         eval_splits: List[str] = ["test"],
         skip_memory_metrics=False,
+        train_split='train',
         pad_to={}
 ):
     model_output_dir = str(os.path.join(root_path, name + "_" + tag))
@@ -122,7 +123,7 @@ def train(
 
     trainer = Trainer(
         model_init=model_provider,
-        train_dataset=ds["train"],
+        train_dataset=ds[train_split],
         eval_dataset=test_ds,
         args=training_args,
         tokenizer=tokenizer,
