@@ -175,7 +175,7 @@ class LogTotalEnergyUpperBands(AudioFeature):
         energy = torch.sum(frames ** 2, dim=-1)
 
         mel = self.mel(utterance_wave.float()).transpose(1, 0)
-        mel = mel[:frames.shape[0], :-self.band]
+        mel = mel[:frames.shape[0], self.band:]
         mel_energy = torch.sum(mel ** 2, dim=-1)
         normalized_energies = mel_energy / (energy + 1e-6)
         return torch.log(normalized_energies + 1e-6)
