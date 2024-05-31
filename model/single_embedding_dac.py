@@ -34,17 +34,17 @@ class SingleEmbeddingSentenceClassifier(PreTrainedModel):
         super().__init__(config)
         self.config = config
         features, self.backbone = BACKBONES[config.backbone]
-        self.backbone = self.backbone(**config.backbone_kwargs)
-        if config.backbone_freezed:
-            self.backbone = freeze(self.backbone)
+        self.backbone_initialized = False
 
         self.hidden_state_extractor = lambda input_ids, attention_mask=None, **kwargs: \
-            self.backbone(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs).hidden_states[
+            self._get_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True,
+                                 **kwargs).hidden_states[
                 -1]
         if config.embedding_strategy == 'provided':
-            self.hidden_state_extractor = lambda input_ids, attention_mask=None, **kwargs: self.backbone(input_ids,
-                                                                                                         attention_mask=attention_mask,
-                                                                                                         **kwargs)[0]
+            self.hidden_state_extractor = lambda input_ids, attention_mask=None, **kwargs: \
+                self._get_backbone()(input_ids,
+                                     attention_mask=attention_mask,
+                                     **kwargs)[0]
         self.hidden_state_extractor = LambdaLayer(self.hidden_state_extractor)
         self.pooling = ConfigurablePooling(
             features,
@@ -61,6 +61,15 @@ class SingleEmbeddingSentenceClassifier(PreTrainedModel):
             self.loss = nn.BCEWithLogitsLoss()
         else:
             self.loss = nn.CrossEntropyLoss()
+
+    def _get_backbone(self):
+        if self.backbone_initialized:
+            return self.backbone
+        self.backbone_initialized = True
+        self.backbone = self.backbone(**self.config.backbone_kwargs)
+        if self.config.backbone_freezed:
+            self.backbone = freeze(self.backbone)
+        return self.backbone
 
     def forward(self, input_ids, labels=None, attention_mask=None, hidden_states=None, **kwargs):
         if hidden_states is None:

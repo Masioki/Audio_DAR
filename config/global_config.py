@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SAMPLE_RATE = int(os.environ.get("SAMPLE_RATE", 16000))
+FRAME_SIZE = float(os.environ.get("FRAME_SIZE", 0.025))
 HF_CONFIG = {
     "token": os.environ.get("HF_TOKEN"),
     "write_permission": bool(os.environ.get("HF_WRITE_PERMISSION", False))

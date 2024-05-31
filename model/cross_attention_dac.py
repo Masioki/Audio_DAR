@@ -48,22 +48,18 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
         super().__init__(config)
         self.config = config
         q_features, self.q_backbone = BACKBONES[config.q_backbone]
-        self.q_backbone = self.q_backbone(**config.q_kwargs)
-        if config.q_freezed:
-            self.q_backbone = freeze(self.q_backbone)
+        self.q_backbone_initialized = False
         self.q_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
-            self.q_backbone(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
+            self._get_q_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
             .hidden_states[-1]
         )
 
         k_features, self.k_backbone = BACKBONES[config.k_backbone]
-        self.k_backbone = self.k_backbone(**config.k_kwargs)
-        if config.k_freezed:
-            self.k_backbone = freeze(self.k_backbone)
+        self.k_backbone_initialized = False
         self.k_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
-            self.k_backbone(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
+            self._get_k_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
             .hidden_states[-1]
         )
 
@@ -88,6 +84,24 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
             self.loss = nn.BCEWithLogitsLoss()
         else:
             self.loss = nn.CrossEntropyLoss()
+
+    def _get_q_backbone(self):
+        if self.q_backbone_initialized:
+            return self.q_backbone
+        self.q_backbone_initialized = True
+        self.q_backbone = self.q_backbone(**self.config.q_kwargs)
+        if self.config.q_freezed:
+            self.q_backbone = freeze(self.q_backbone)
+        return self.q_backbone
+
+    def _get_k_backbone(self):
+        if self.k_backbone_initialized:
+            return self.k_backbone
+        self.k_backbone_initialized = True
+        self.k_backbone = self.k_backbone(**self.config.k_kwargs)
+        if self.config.k_freezed:
+            self.k_backbone = freeze(self.k_backbone)
+        return self.k_backbone
 
     def forward(self, q_inputs, k_inputs, q_attention_mask=None, q_hidden_states=None, k_attention_mask=None,
                 k_hidden_states=None, labels=None, **kwargs):

@@ -26,10 +26,11 @@ SLUE_ID_2_LABEL = {
 
 SLUE_LABEL_2_ID = {v: k for k, v in SLUE_ID_2_LABEL.items()}
 
+
 class Dataset:
     SWDA = DatasetConfig(
         repo_path="Masioki/SWDA-processed",
-        audio_features=[AudioFeatures.TEST],
+        audio_features=[AudioFeatures.LOG_PITCH_POV],
         generator=SwdaDatasetGenerator,
         generator_kwargs={
             "hf_path": "swda",
@@ -41,40 +42,16 @@ class Dataset:
             "conv_id": "conversation_no"
         }
     )
-    SLUE_TED = DatasetConfig(  # TODO: parametry
-        repo_path="Masioki/SLUE-processed",
-        repo_name="ted",
-        audio_features=[AudioFeatures.TEST],
-        generator=OrderedHfDatasetGenerator,
-        generator_kwargs={
-            "hf_path": "asapp/slue-phase-2",
-            "hf_name": "ted",
-            "splits_config": ["train", "validation", "test"],
-            "audio_id": "audio",
-            "speaker_id": "speaker_id",
-            "text_id": "text",
-            "conv_id": "issue_id"
-        }
-    )
-    SLUE_VP_NEL = DatasetConfig(
-        repo_path="Masioki/SLUE-processed",
-        repo_name="vp_nel",
-        audio_features=[AudioFeatures.TEST],
-        generator=OrderedHfDatasetGenerator,
-        generator_kwargs={
-            "hf_path": "asapp/slue-phase-2",
-            "hf_name": "vp_nel",
-            "splits_config": ["train", "validation", "test"],
-            "audio_id": "audio",
-            "speaker_id": "speaker_id",
-            "text_id": "text",
-            "conv_id": "id"
-        }
-    )
     SLUE_HVB = DatasetConfig(
         repo_path="Masioki/SLUE-processed",
         repo_name="hvb",
-        audio_features=[AudioFeatures.TEST],
+        audio_features=[
+            AudioFeatures.LOG_PITCH_POV,
+            AudioFeatures.LOG_PITCH_DER,
+            AudioFeatures.LOG_TOTAL_E,
+            AudioFeatures.LOG_TOTAL_E_LOWER_BANDS,
+            AudioFeatures.LOG_TOTAL_E_UPPER_BANDS
+        ],
         generator=OrderedHfDatasetGenerator,
         generator_kwargs={
             "hf_path": "asapp/slue-phase-2",
@@ -86,19 +63,25 @@ class Dataset:
             "conv_id": "issue_id"
         }
     )
-    SLUE_SQA_5 = DatasetConfig(  # TODO: parametry
+    SLUE_HVB_PROCESSED = DatasetConfig(
         repo_path="Masioki/SLUE-processed",
-        repo_name="sqa5",
-        audio_features=[AudioFeatures.TEST],
+        repo_name="hvb",
+        audio_features=[
+            AudioFeatures.LOG_PITCH_POV,
+            AudioFeatures.LOG_PITCH_DER,
+            AudioFeatures.LOG_TOTAL_E,
+            AudioFeatures.LOG_TOTAL_E_LOWER_BANDS,
+            AudioFeatures.LOG_TOTAL_E_UPPER_BANDS
+        ],
         generator=OrderedHfDatasetGenerator,
         generator_kwargs={
-            "hf_path": "asapp/slue-phase-2",
-            "hf_name": "sqa5",
-            "splits_config": ["train", "validation", "test"],
+            "hf_path": "Masioki/SLUE-processed",
+            "hf_name": "hvb",
+            "splits_config": ["train", "validation", "test", "asr_train", "asr_validation", "asr_test"],
             "audio_id": "audio",
-            "speaker_id": "speaker_id",
+            "speaker_id": "speaker",
             "text_id": "text",
-            "conv_id": "issue_id"
+            "conv_id": "conversation"
         }
     )
     # Można tu kombinować z różnymi datasetami
