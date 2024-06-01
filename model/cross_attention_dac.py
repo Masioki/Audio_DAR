@@ -115,7 +115,7 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
         else:
             k_outputs = k_hidden_states
 
-        outputs = self.cross_attention(q_outputs, k_outputs)
+        outputs = self.cross_attention(q_outputs, k_outputs, mask=k_attention_mask)
         outputs = self.layer_normalization(outputs)
         outputs = self.pooling(outputs, q_inputs, q_attention_mask, **kwargs)
         logits = self.head(outputs)

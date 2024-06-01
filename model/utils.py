@@ -12,6 +12,14 @@ from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCal
 from config.datasets_config import SLUE_LABEL_2_ID
 
 
+def combine_sequences(batch, result_name, sequences_names):
+    samples_no = len(batch[sequences_names[0]])
+    result = []
+    for i in range(samples_no):
+        result.append(pad_sequence([torch.tensor(batch[sequence_name][i]) for sequence_name in sequences_names],
+                                   batch_first=True))
+    return {result_name: result}
+
 def slue_label_to_id(batch):
     batch['labels'] = label_to_id(batch['dialog_acts'], SLUE_LABEL_2_ID)
     return batch
