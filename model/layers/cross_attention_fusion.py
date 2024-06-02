@@ -27,8 +27,8 @@ class CrossAttentionFusion(nn.Module):
             self.fusion = LambdaLayer(lambda c1_out, c2_out: torch.mean(torch.stack([c1_out, c2_out], dim=-1), dim=-1))
 
     def forward(self, q, k1, k2, k1_mask=None, k2_mask=None):
-        c1_out = self.layer_norm(self.c1(q, k1, k1_mask))
-        c2_out = self.layer_norm(self.c2(q, k2, k2_mask))
+        c1_out = self.layer_norm(self.c1(q, k1, k1_mask) + q)
+        c2_out = self.layer_norm(self.c2(q, k2, k2_mask) + q)
         return self.fusion(c1_out, c2_out)
 
 
@@ -40,6 +40,7 @@ class CrossAttentionFusionModule(nn.Module):
                  fusion_strategy='dense',
                  layers: int = 2):
         super(CrossAttentionFusionModule, self).__init__()
+        self.layer_norm = nn.LayerNorm(q_size)
         self.layers = nn.ModuleList([
             CrossAttentionFusion(q_size, k1_size, k2_size, heads, fusion_strategy)
             for _ in range(layers)
@@ -47,5 +48,5 @@ class CrossAttentionFusionModule(nn.Module):
 
     def forward(self, q, k1, k2, k1_mask=None, k2_mask=None):
         for layer in self.layers:
-            q = layer(q, k1, k2, k1_mask, k2_mask)
+            q = self.layer_norm(layer(q, k1, k2, k1_mask, k2_mask))
         return q

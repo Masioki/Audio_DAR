@@ -3,7 +3,7 @@ from transformers import PreTrainedModel, PretrainedConfig
 
 from model.config import BACKBONES
 from model.layers.cls_head import SentenceClassifierHead
-from model.layers.cross_attention import CrossAttention
+from model.layers.cross_attention import CrossAttentionModule
 from model.layers.lambd import LambdaLayer
 from model.layers.pooling import ConfigurablePooling
 from model.utils import freeze
@@ -25,6 +25,7 @@ class CrossAttentionSentenceClassifierConfig(PretrainedConfig):
                  embedding_strategy: str = 'wmean-pooling',
                  hidden_size: int = 768,
                  dropout: float = 0.3,
+                 cross_layers: int = 2,
                  **kwargs):
         super().__init__(**kwargs)
         self.q_backbone = q_backbone
@@ -39,6 +40,7 @@ class CrossAttentionSentenceClassifierConfig(PretrainedConfig):
         self.labels = labels
         self.multilabel = multilabel
         self.heads = heads
+        self.cross_layers = cross_layers
 
 
 class CrossAttentionSentenceClassifier(PreTrainedModel):
@@ -63,12 +65,12 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
             .hidden_states[-1]
         )
 
-        self.cross_attention = CrossAttention(
+        self.cross_attention = CrossAttentionModule(
             q_features,
             k_features,
             config.heads,
+            config.cross_layers
         )
-        self.layer_normalization = nn.LayerNorm(q_features)
         self.pooling = ConfigurablePooling(
             q_features,
             config.embedding_strategy
@@ -118,7 +120,6 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
             k_outputs = k_hidden_states
 
         outputs = self.cross_attention(q_outputs, k_outputs, mask=k_attention_mask)
-        outputs = self.layer_normalization(outputs)
         outputs = self.pooling(outputs, q_inputs, q_attention_mask, **kwargs)
         logits = self.head(outputs)
         loss = None

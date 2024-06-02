@@ -44,3 +44,19 @@ class CrossAttention(nn.Module):
                                                                               self.heads * self.head_dim)
 
         return self.output_projection(attention_output)
+
+
+class CrossAttentionModule(nn.Module):
+
+    def __init__(self, query_dim, key_dim, heads: int = 8, layers: int = 2):
+        super(CrossAttentionModule, self).__init__()
+        self.layer_norm = nn.LayerNorm(query_dim)
+        self.layers = nn.ModuleList([
+            CrossAttention(query_dim, key_dim, heads)
+            for _ in range(layers)
+        ])
+
+    def forward(self, q, k, mask=None):
+        for layer in self.layers:
+            q = self.layer_norm(layer(q, k, mask) + q)
+        return q
