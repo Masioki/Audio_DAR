@@ -3,7 +3,7 @@ from transformers import PreTrainedModel, PretrainedConfig
 
 from model.config import BACKBONES
 from model.layers.cls_head import SentenceClassifierHead
-from model.layers.cross_attention_fusion import CrossAttentionFusion
+from model.layers.cross_attention_fusion import CrossAttentionFusionModule
 from model.layers.lambd import LambdaLayer
 from model.layers.pooling import ConfigurablePooling
 from model.utils import freeze
@@ -27,6 +27,7 @@ class FusionCrossAttentionSentenceClassifierConfig(PretrainedConfig):
                  multilabel=False,
                  embedding_strategy: str = 'wmean-pooling',
                  fusion_strategy: str = 'dense',
+                 fusion_layers: int = 2,
                  hidden_size: int = 768,
                  dropout: float = 0.3,
                  **kwargs):
@@ -47,6 +48,7 @@ class FusionCrossAttentionSentenceClassifierConfig(PretrainedConfig):
         self.multilabel = multilabel
         self.heads = heads
         self.fusion_strategy = fusion_strategy
+        self.fusion_layers = fusion_layers
 
 
 class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
@@ -79,12 +81,13 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
             .hidden_states[-1]
         )
 
-        self.cross_attention = CrossAttentionFusion(
+        self.cross_attention = CrossAttentionFusionModule(
             q_features,
             k1_features,
             k2_features,
             config.heads,
-            config.fusion_strategy
+            config.fusion_strategy,
+            config.fusion_layers
         )
         self.layer_normalization = nn.LayerNorm(q_features)
         self.pooling = ConfigurablePooling(

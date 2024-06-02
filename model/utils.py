@@ -17,7 +17,7 @@ def combine_sequences(batch, result_name, sequences_names):
     result = []
     for i in range(samples_no):
         result.append(pad_sequence([torch.tensor(batch[sequence_name][i]) for sequence_name in sequences_names],
-                                   batch_first=True))
+                                   batch_first=True).transpose(-1, -2))
     return {result_name: result}
 
 def slue_label_to_id(batch):

@@ -24,7 +24,6 @@ class CrossAttention(nn.Module):
         self.output_projection = nn.Linear(self.key_dim, self.query_dim)
 
     def forward(self, q, k, mask=None):
-        print(q.shape, self.query_dim)
         query = self.query_projection(q)
         key = self.key_projection(k)
         value = self.value_projection(k)
