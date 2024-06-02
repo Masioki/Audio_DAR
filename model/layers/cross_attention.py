@@ -32,7 +32,7 @@ class CrossAttention(nn.Module):
         key = key.view(key.size(0), -1, self.heads, self.head_dim).transpose(1, 2)
         value = value.view(value.size(0), -1, self.heads, self.head_dim).transpose(1, 2)
 
-        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / self.scale
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / self.scale.to(query.device)
 
         if mask is not None:
             attention_scores = attention_scores.masked_fill(mask.unsqueeze(1).unsqueeze(2) == 0, -1e10)

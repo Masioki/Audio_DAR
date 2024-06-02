@@ -111,6 +111,7 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
             return self.q_backbone
         self.q_backbone_initialized = True
         self.q_backbone = self.q_backbone(**self.config.q_kwargs)
+        self.q_backbone.to(self.device)
         if self.config.q_freezed:
             self.q_backbone = freeze(self.q_backbone)
         return self.q_backbone
@@ -120,6 +121,7 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
             return self.k1_backbone
         self.k1_backbone_initialized = True
         self.k1_backbone = self.k1_backbone(**self.config.k1_kwargs)
+        self.k1_backbone.to(self.device)
         if self.config.k1_freezed:
             self.k1_backbone = freeze(self.k1_backbone)
         return self.k1_backbone
@@ -129,6 +131,7 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
             return self.k2_backbone
         self.k2_backbone_initialized = True
         self.k2_backbone = self.k2_backbone(**self.config.k2_kwargs)
+        self.k2_backbone.to(self.device)
         if self.config.k2_freezed:
             self.k2_backbone = freeze(self.k2_backbone)
         return self.k2_backbone

@@ -90,6 +90,7 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
             return self.q_backbone
         self.q_backbone_initialized = True
         self.q_backbone = self.q_backbone(**self.config.q_kwargs)
+        self.q_backbone.to(self.device)
         if self.config.q_freezed:
             self.q_backbone = freeze(self.q_backbone)
         return self.q_backbone
@@ -99,6 +100,7 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
             return self.k_backbone
         self.k_backbone_initialized = True
         self.k_backbone = self.k_backbone(**self.config.k_kwargs)
+        self.k_backbone.to(self.device)
         if self.config.k_freezed:
             self.k_backbone = freeze(self.k_backbone)
         return self.k_backbone
