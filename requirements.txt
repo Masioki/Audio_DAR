@@ -15,3 +15,6 @@ accelerate
 numpy~=1.26.4
 setfit
 bitsandbytes
+pandas-profiling
+ydata-profiling
+jiwer

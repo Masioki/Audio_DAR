@@ -133,7 +133,10 @@ class HfAbstractDatasetGenerator(AbstractDatasetGenerator):
         self.ds = ...
 
     def _input_sample_rate(self) -> int:
-        return self.ds.features[self.audio_id].sampling_rate
+        s_rate = self.ds.features[self.audio_id].sampling_rate
+        if s_rate is None:
+            return SAMPLE_RATE
+        return s_rate
 
     def _prepare(self, split: str) -> None:
         self.ds = load_ds(self.hf_path, self.hf_name, split)

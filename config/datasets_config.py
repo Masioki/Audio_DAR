@@ -84,4 +84,25 @@ class Dataset:
             "conv_id": "conversation"
         }
     )
+    DSCT2 = DatasetConfig(
+        repo_path="Masioki/DSCT2-processed",
+        repo_name=None,
+        audio_features=[
+            AudioFeatures.LOG_PITCH_POV,
+            AudioFeatures.LOG_PITCH_DER,
+            AudioFeatures.LOG_TOTAL_E,
+            AudioFeatures.LOG_TOTAL_E_LOWER_BANDS,
+            AudioFeatures.LOG_TOTAL_E_UPPER_BANDS
+        ],
+        generator=OrderedHfDatasetGenerator,
+        generator_kwargs={
+            "hf_path": "marcel-gohsen/dstc2",
+            "hf_name": None,
+            "splits_config": ["traindev", "test"],
+            "audio_id": "audio",
+            "speaker_id": "caller",
+            "text_id": "transcript",
+            "conv_id": "session"
+        }
+    )
     # Można tu kombinować z różnymi datasetami
