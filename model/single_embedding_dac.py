@@ -67,6 +67,7 @@ class SingleEmbeddingSentenceClassifier(PreTrainedModel):
             return self.backbone
         self.backbone_initialized = True
         self.backbone = self.backbone(**self.config.backbone_kwargs)
+        self.backbone.to(self.device)
         if self.config.backbone_freezed:
             self.backbone = freeze(self.backbone)
         return self.backbone
