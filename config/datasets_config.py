@@ -86,7 +86,7 @@ class Dataset:
     )
     DSCT2 = DatasetConfig(
         repo_path="Masioki/DSCT2-processed",
-        repo_name=None,
+        repo_name="default",
         audio_features=[
             AudioFeatures.LOG_PITCH_POV,
             AudioFeatures.LOG_PITCH_DER,
