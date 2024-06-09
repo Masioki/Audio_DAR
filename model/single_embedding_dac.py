@@ -30,11 +30,13 @@ class SingleEmbeddingSentenceClassifierConfig(PretrainedConfig):
 class SingleEmbeddingSentenceClassifier(PreTrainedModel):
     config_class = SingleEmbeddingSentenceClassifierConfig
 
-    def __init__(self, config):
+    def __init__(self, config, load_on_init=False):
         super().__init__(config)
         self.config = config
         features, self.backbone = BACKBONES[config.backbone]
         self.backbone_initialized = False
+        if load_on_init:
+            self.backbone = self._get_backbone()
 
         self.hidden_state_extractor = lambda input_ids, attention_mask=None, **kwargs: \
             self._get_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True,

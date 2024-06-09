@@ -54,11 +54,13 @@ class FusionCrossAttentionSentenceClassifierConfig(PretrainedConfig):
 class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
     config_class = FusionCrossAttentionSentenceClassifierConfig
 
-    def __init__(self, config):
+    def __init__(self, config, load_on_init=False):
         super().__init__(config)
         self.config = config
         q_features, self.q_backbone = BACKBONES[config.q_backbone]
         self.q_backbone_initialized = False
+        if load_on_init:
+            self.q_backbone = self._get_q_backbone()
         self.q_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
             self._get_q_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
@@ -67,6 +69,8 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
 
         k1_features, self.k1_backbone = BACKBONES[config.k1_backbone]
         self.k1_backbone_initialized = False
+        if load_on_init:
+            self.k1_backbone = self._get_k1_backbone()
         self.k1_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
             self._get_k1_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
@@ -75,6 +79,8 @@ class FusionCrossAttentionSentenceClassifier(PreTrainedModel):
 
         k2_features, self.k2_backbone = BACKBONES[config.k2_backbone]
         self.k2_backbone_initialized = False
+        if load_on_init:
+            self.k2_backbone = self._get_k2_backbone()
         self.k2_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
             self._get_k2_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)

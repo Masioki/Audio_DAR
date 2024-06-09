@@ -46,11 +46,14 @@ class CrossAttentionSentenceClassifierConfig(PretrainedConfig):
 class CrossAttentionSentenceClassifier(PreTrainedModel):
     config_class = CrossAttentionSentenceClassifierConfig
 
-    def __init__(self, config):
+    def __init__(self, config, load_on_init=False):
         super().__init__(config)
         self.config = config
         q_features, self.q_backbone = BACKBONES[config.q_backbone]
         self.q_backbone_initialized = False
+        if load_on_init:
+            self.q_backbone = self._get_q_backbone()
+            print(self.q_backbone)
         self.q_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
             self._get_q_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
@@ -59,6 +62,8 @@ class CrossAttentionSentenceClassifier(PreTrainedModel):
 
         k_features, self.k_backbone = BACKBONES[config.k_backbone]
         self.k_backbone_initialized = False
+        if load_on_init:
+            self.k_backbone = self._get_k_backbone()
         self.k_hidden_state_extractor = LambdaLayer(
             lambda input_ids, attention_mask=None, **kwargs:
             self._get_k_backbone()(input_ids, attention_mask=attention_mask, output_hidden_states=True, **kwargs)
