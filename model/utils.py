@@ -3,9 +3,9 @@ from typing import Any, List, Dict, Mapping
 
 import numpy as np
 import torch
-from ray import tune
 from ray.tune.schedulers import MedianStoppingRule
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, classification_report, \
+    multilabel_confusion_matrix
 from torch.nn.utils.rnn import pad_sequence
 from transformers import AutoModel, Trainer, TrainingArguments, EarlyStoppingCallback
 
@@ -67,12 +67,43 @@ def single_label_compute_metrics(p):
     }
 
 
-def ray_hp_space(trial):
-    return {
-        "weight_decay": tune.loguniform(0.001, 0.1),
-        "learning_rate": tune.loguniform(1e-6, 1e-4),
-        "per_device_train_batch_size": tune.choice([8, 16, 32, 64]),
-    }
+def multi_label_eval_compute_metrics(p):
+    predictions, labels = p
+    predictions = torch.sigmoid(torch.from_numpy(predictions)).cpu().detach().numpy()
+    report = classification_report(labels, predictions > 0.5, output_dict=True)
+    report['cm'] = multilabel_confusion_matrix(labels, predictions > 0.5)
+    report['labels_freq'] = np.sum(labels, axis=0)
+    return report
+
+
+def evaluate(
+        ds,
+        model,
+        root_path,
+        name,
+        tag: str = "default",
+        metrics=multi_label_eval_compute_metrics,
+        tokenizer=None,
+        pad_to={}
+):
+    model_output_dir = str(os.path.join(root_path, name + "_" + tag))
+    training_args = TrainingArguments(
+        output_dir=model_output_dir,
+        gradient_accumulation_steps=4,
+        per_device_train_batch_size=2,
+        per_device_eval_batch_size=2,
+        skip_memory_metrics=True,
+        report_to=[]
+    )
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        tokenizer=tokenizer,
+        data_collator=CustomDataCollator(pad_to),
+        compute_metrics=metrics
+    )
+    eval_res = trainer.evaluate(ds)
+    return eval_res
 
 
 def train(
