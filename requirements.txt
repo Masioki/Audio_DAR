@@ -19,3 +19,4 @@ pandas-profiling
 ydata-profiling
 jiwer
 scipy
+peft
