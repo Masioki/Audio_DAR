@@ -1,5 +1,7 @@
 .env
 data/*
 logs/*
+eval/*
 /.idea/*
 /.ipynb_checkpoints/*
+**/__pycache__/*

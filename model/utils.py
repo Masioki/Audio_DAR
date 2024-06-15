@@ -73,6 +73,8 @@ def multi_label_eval_compute_metrics(p):
     report = classification_report(labels, predictions > 0.5, output_dict=True)
     report['cm'] = multilabel_confusion_matrix(labels, predictions > 0.5)
     report['labels_freq'] = np.sum(labels, axis=0)
+    report['pred'] = predictions > 0.5
+    report['true'] = labels 
     return report
 
 

@@ -38,9 +38,9 @@ def generate(config: DatasetConfig) -> DatasetDict:
     return ds
 
 
-def process(ds, mappers: List[Callable], columns_to_remove: set = {}):
+def process(ds, mappers: List[Callable], columns_to_remove: set = {}, batch_size=1000):
     for mapper in mappers:
-        ds = ds.map(mapper, batched=True)
+        ds = ds.map(mapper, batched=True, batch_size=batch_size)
     ds = ds.remove_columns(columns_to_remove)
     return ds
 
