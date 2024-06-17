@@ -1,4 +1,5 @@
 from peft import LoraConfig, get_peft_model
+from transformers import WhisperForConditionalGeneration
 
 from model.layers.prosody_encoder import ProsodyEncoder, TransformerProsodyEncoder
 from model.utils import _load_model
@@ -16,6 +17,11 @@ BACKBONES = {
     'mpnet-base-v2': (768, lambda **kwargs: _load_model("sentence-transformers/all-mpnet-base-v2", **kwargs)),
     "lstm-prosody-encoder192": (192, lambda **kwargs: ProsodyEncoder(hidden_size=192, **kwargs)),
     "transformer-prosody-encoder192": (192, lambda **kwargs: TransformerProsodyEncoder(hidden_size=192, **kwargs)),
+}
+
+STT_BACKBONES = {
+    'whisper-encoder-small': lambda: WhisperForConditionalGeneration.from_pretrained("openai/whisper-small.en"),
+    'whisper-encoder-tiny': lambda: WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny.en"),
 }
 
 _DEFAULT_LORA_CONFIG = LoraConfig(

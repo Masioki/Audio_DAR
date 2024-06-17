@@ -16,7 +16,7 @@ class CrossAttentionSentenceClassifierConfig(PretrainedConfig):
                  q_backbone: str = "Phi-3-mini-4k-instruct",
                  q_freezed: bool = True,
                  q_kwargs: dict = {},
-                 k_backbone: str = "Phi-3-mini-4k-instruct",
+                 k_backbone: str = "transformer-prosody-encoder192",
                  k_freezed: bool = True,
                  k_kwargs: dict = {},
                  heads: int = 8,
