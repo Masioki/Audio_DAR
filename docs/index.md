@@ -1,12 +1,13 @@
-# Do audio features improve dialogue act classification?
+# Do Audio Features Improve Dialogue Act Classification?
 
-Research on impact of audio features on multi-label dialogue act classification.
+Research on impact of audio features on multi-label Dialogue Act Classification (DAC).
 
 ## Data
 
 * [SLUE HVB](https://huggingface.co/datasets/asapp/slue-phase-2) - base dataset
 * Extracted audio encodings using [Whisper](https://huggingface.co/openai/whisper-small.en) model
-* Extracted audio features in 25ms frames using [own implementation](..%2Faudio%2Ffeatures.py)
+* Extracted audio features in 25ms frames
+  using [own implementation](https://github.com/Masioki/Audio_DAR/blob/main/audio/features.py)
 
 ## Models overview
 
@@ -15,31 +16,35 @@ explained below.
 
 ### Sentence representation
 
-Most models used simplified self-attention pooling to extract sentence representation, which is effectively dynamic
+Most models used
+simplified [self-attention pooling](https://github.com/Masioki/Audio_DAR/blob/main/model/layers/self_att_pool.py) to
+extract sentence representation, which is effectively dynamic
 weighted mean.
-Only exception is text based Phi 3 mini, where statically weighted cross attention worked best.
+Only exception is text based Phi 3 mini, where statically weighted mean worked best.
 
 ![diagram-Self attention pooling.png](diagram-Self%20attention%20pooling.png)
 
 (Yes, it should be simplified to matmul).
 
-### [Text based](..%2Fmodel%2Fsingle_embedding_dac.py)
+### [Text based](https://github.com/Masioki/Audio_DAR/blob/main/model/single_embedding_dac.py)
 
 * [DistilBERT](https://huggingface.co/distilbert/distilbert-base-uncased)
 * [Phi 3 mini](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
 
 ![diagram-Base.png](diagram-Base.png)
 
-### [Cross attention](..%2Fmodel%2Fcross_attention_dac.py)
+### [Cross attention](https://github.com/Masioki/Audio_DAR/blob/main/model/cross_attention_dac.py)
 
 Stacked cross attention with residual connections and layer norms between text and audio encodings.
 
 * Between text encoding and ASR encoder output
-* Between text encoding and [prosody encoder](..%2Fmodel%2Flayers%2Fprosody_encoder.py) output (transformer encoder)
+* Between text encoding
+  and [prosody encoder](https://github.com/Masioki/Audio_DAR/blob/main/model/layers/prosody_encoder.py) output (
+  transformer encoder)
 
 ![diagram-Cross Attention Base.png](diagram-Cross%20Attention%20Base.png)
 
-### [Fusion](..%2Fmodel%2Ffusion_attention_dac.py)
+### [Fusion](https://github.com/Masioki/Audio_DAR/blob/main/model/fusion_attention_dac.py)
 
 Stacked fusion of cross attentions with residual connections and layer norms between text and different audio encodings.
 
@@ -58,7 +63,7 @@ slightly different set of classes.
 
 ### Impact of ASR encoder on E2E task using Phi 3
 
-Model learns ASR errors without any fine-tuning of backbones.
+Model learns ASR errors without any fine-tuning of backbones (E2E 72.04, GT 72.17 F1-macro).
 
 ![f1-score diff (8).jpg](f1-score%20diff%20%288%29.jpg)
 
@@ -79,7 +84,8 @@ Model learns ASR errors without any fine-tuning of backbones.
 Using code from [github](https://github.com/Masioki/Audio_DAR) you may load and test some predefined models yourself on
 End-2-End task, which is just audio classification.  
 Model [fusion_gttbsc_distilbert-uncased-best](https://huggingface.co/Masioki/fusion_gttbsc_distilbert-uncased-best),
-along couple others, achieved State-of-the-Art results (to best of my knowledge) both on End-2-End (71.72 F1-macro) and
+along couple others, achieved **State-of-the-Art results** (to best of my knowledge) both on End-2-End (71.72 F1-macro)
+and
 Ground Truth (73.48 F1-macro) task on SLUE HVB dataset.
 
 ```bash
@@ -127,7 +133,7 @@ sample = ds['test'][0]
 Use custom audio classification with transcription piplines.
 
 ```python
-# Single embedding model
+# Text model
 pipe = SingleEmbeddingPipeline(
     model=model_gt,
     audio_processor=audio_processor,
@@ -144,7 +150,7 @@ pipe(sample['audio']['array'])
 ```
 
 ```python
-# Prosody only model
+# Prosody with text model
 pipe = CrossAttentionPipeline(
     model=model_pros,
     audio_processor=audio_processor,
@@ -167,7 +173,7 @@ pipe(sample['audio']['array'])
 ```
 
 ```python
-# ASR encoder only model
+# ASR encodings with text model
 pipe = CrossAttentionPipeline(
     model=model_enc,
     audio_processor=audio_processor,
