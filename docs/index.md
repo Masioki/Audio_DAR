@@ -80,6 +80,7 @@ Model learns ASR errors without any fine-tuning of backbones (E2E 72.04, GT 72.1
 ![f1-score diff (9).jpg](f1-score%20diff%20%289%29.jpg)
 
 ## Try it out
+[![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Masioki/Audio_DAR/blob/main/Experiments.ipynb)
 
 Using code from [github](https://github.com/Masioki/Audio_DAR) you may load and test some predefined models yourself on
 End-2-End task, which is just audio classification.  
