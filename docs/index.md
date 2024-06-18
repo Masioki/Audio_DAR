@@ -2,9 +2,16 @@
 
 Research on impact of audio features on multi-label Dialogue Act Classification (DAC).
 
+## Motivation
+
+Dialogue Act Classification lies at the bases of most dialogue systems like voice assistants etc.  
+Separate text-based DAC and Automatic Speech Recognition (ASR) is a standard practice prone to errors, due to imperfect ASR models.
+Having audio present in such real-life scenarios opens up possibilities for improving classification via deeper integration of those, traditionally separated, modules.  
+Examining the impact of audio features is also crucial for deeper understanding of human communication.
+
 ## Data
 
-* [SLUE HVB](https://huggingface.co/datasets/asapp/slue-phase-2) - base dataset
+* [SLUE HVB](https://huggingface.co/datasets/asapp/slue-phase-2) - base dataset - new, unexplored and challenging, due to its multi-label nature, benchmark
 * Extracted audio encodings using [Whisper](https://huggingface.co/openai/whisper-small.en) model
 * Extracted audio features in 25ms frames
   using [own implementation](https://github.com/Masioki/Audio_DAR/blob/main/audio/features.py)
@@ -54,8 +61,14 @@ Stacked fusion of cross attentions with residual connections and layer norms bet
 ## Results
 
 Deeper analysis performed in my thesis (TBA), but here are some highlights.  
+
 Difference between Phi 3 mini and DistilBERT is not significant in overall metrics, but improvements can be seen on
-slightly different set of classes.
+slightly different set of classes.  
+
+Model [fusion_gttbsc_distilbert-uncased-best](https://huggingface.co/Masioki/fusion_gttbsc_distilbert-uncased-best),
+along couple others, achieved **State-of-the-Art results** (to best of my knowledge) both on End-2-End (71.72 F1-macro)
+and
+Ground Truth (73.48 F1-macro) task on SLUE HVB dataset.
 
 ### Fusion - Phi 3
 
@@ -84,10 +97,7 @@ Model learns ASR errors without any fine-tuning of backbones (E2E 72.04, GT 72.1
 
 Using code from [github](https://github.com/Masioki/Audio_DAR) you may load and test some predefined models yourself on
 End-2-End task, which is just audio classification.  
-Model [fusion_gttbsc_distilbert-uncased-best](https://huggingface.co/Masioki/fusion_gttbsc_distilbert-uncased-best),
-along couple others, achieved **State-of-the-Art results** (to best of my knowledge) both on End-2-End (71.72 F1-macro)
-and
-Ground Truth (73.48 F1-macro) task on SLUE HVB dataset.
+
 
 ```bash
 # Optional config
@@ -213,3 +223,9 @@ pipe(sample['audio']['array'])
 # (['question_general', 'statement_open'],
 #  ' Hello, this is Harper Valley National Bank. My name is Michael. How can I help you today?')
 ```
+
+## Poster
+
+Poster presented at AI Forum 2024 - Wrocław University of Science and Technology.
+
+![Do audio features improve dialogue act classification.svg](Do%20audio%20features%20improve%20dialogue%20act%20classification.svg)
